@@ -13,6 +13,18 @@ import utils
 from utils import *
 from train_utils import batchify_data, run_epoch, train_model
 
+# We have provided a toy example nnet_fc.py in which we have implemented for you a simple neural network.
+# This network has one hidden layer of 10 neurons with a rectified linear unit (ReLU) nonlinearity, as well as an output layer of 10 neurons (one for each digit class).
+# Finally, a softmax function normalizes the activations of the output neurons so that they specify a probability distribution.
+
+# Reference the PyTorch Documentation and read through it in order to gain a better understanding of the code.
+# Then, try running the code on your computer with the command python3 nnet_fc.py.
+# This will train the network with 10 epochs, where an epoch is a complete pass through the training dataset.
+# Total training time of your network should take no more than a couple of minutes.
+# At the end of training, your model should have an accuracy of more than %85 on test data.
+#
+# Note: We are not using a softmax layer because it is already present in the loss: PyTorch's nn.CrossEntropyLoss combines nn.LogSoftMax with nn.NLLLoss.
+
 def main():
     # Load the dataset
     num_classes = 10

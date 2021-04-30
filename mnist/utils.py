@@ -2,7 +2,7 @@ import pickle, gzip, numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import math
-
+import torchvision.transforms.functional as tvisionF
 
 def plot_images(X):
     if X.ndim == 1:
@@ -14,6 +14,24 @@ def plot_images(X):
         reshaped_image = X[i,:].reshape(28,28)
         plt.subplot(num_rows, num_cols, i+1)
         plt.imshow(reshaped_image, cmap = cm.Greys_r)
+        plt.axis('off')
+    plt.show()
+
+def plot_intermediate_out(X): # [channels, rows, cols ]
+    if X.ndim <= 2:
+        X = np.array([X])
+
+    num_images = X.shape[0]
+    num_rows = math.floor(math.sqrt(num_images))
+    num_cols = math.ceil(num_images/num_rows)
+    img_rows = X.shape[1]
+    img_cols = X.shape[2]
+    for i in range(num_images):
+        #reshaped_image = X[i,:].reshape(img_rows,img_cols, 1)
+        reshaped_image = tvisionF.to_pil_image(X[i,:])
+        plt.subplot(num_rows, num_cols, i+1)
+        plt.imshow(reshaped_image, cmap = cm.Greys_r)
+        #plt.imshow(reshaped_image)
         plt.axis('off')
     plt.show()
 

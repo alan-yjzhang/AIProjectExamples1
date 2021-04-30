@@ -15,11 +15,13 @@ import math
 
 def rectified_linear_unit(x):
     """ Returns the ReLU of x, or the maximum between 0 and x."""
-    # TODO
+    return max(0, x)
 
 def rectified_linear_unit_derivative(x):
     """ Returns the derivative of ReLU."""
-    # TODO
+    if x < 0:
+        return 0
+    return 1
 
 def output_layer_activation(x):
     """ Linear function, returns input as is. """
@@ -55,36 +57,46 @@ class NeuralNetwork():
         input_values = np.matrix([[x1],[x2]]) # 2 by 1
 
         # Calculate the input and activation of the hidden layer
-        hidden_layer_weighted_input = # TODO (3 by 1 matrix)
-        hidden_layer_activation = # TODO (3 by 1 matrix)
+        hidden_layer_weighted_input = np.matmul(self.input_to_hidden_weights, input_values) + self.biases
+        reLUfunc = np.vectorize(rectified_linear_unit)
+        hidden_layer_activation = reLUfunc(hidden_layer_weighted_input)
 
-        output =  # TODO
-        activated_output = # TODO
+        output =  np.dot(hidden_layer_activation.T, self.hidden_to_output_weights.T)
+        activated_output = output_layer_activation(output)
 
         ### Backpropagation ###
 
         # Compute gradients
-        output_layer_error = # TODO
-        hidden_layer_error = # TODO (3 by 1 matrix)
+        output_layer_error = pow(activated_output - y, 2)/2
+        print("Error: ", output_layer_error)
+        hidden_layer_error = (activated_output - y) / self.hidden_to_output_weights
 
-        bias_gradients = # TODO
-        hidden_to_output_weight_gradients = # TODO
-        input_to_hidden_weight_gradients = # TODO
+        func1 = np.vectorize(output_layer_activation_derivative)
+        func2 = np.vectorize(rectified_linear_unit_derivative)
+        v1 = np.multiply(self.hidden_to_output_weights, func2(hidden_layer_weighted_input.T))
+        v2 = (activated_output - y) * func1(output) * v1
+        bias_gradients = v2.T
+        hidden_to_output_weight_gradients = (activated_output - y) * func1(output) * hidden_layer_activation.T
+
+        input_to_hidden_weight_gradients = np.matmul(v2.T, input_values.T)
 
         # Use gradients to adjust weights and biases using gradient descent
-        self.biases = # TODO
-        self.input_to_hidden_weights = # TODO
-        self.hidden_to_output_weights = # TODO
+        self.biases = self.biases - self.learning_rate * bias_gradients
+        self.input_to_hidden_weights = self.input_to_hidden_weights - self.learning_rate * input_to_hidden_weight_gradients
+        self.hidden_to_output_weights = self.hidden_to_output_weights - self.learning_rate * hidden_to_output_weight_gradients
 
     def predict(self, x1, x2):
 
         input_values = np.matrix([[x1],[x2]])
 
         # Compute output for a single input(should be same as the forward propagation in training)
-        hidden_layer_weighted_input = # TODO
-        hidden_layer_activation = # TODO
-        output = # TODO
-        activated_output = # TODO
+        hidden_layer_weighted_input = np.matmul(self.input_to_hidden_weights, input_values) + self.biases
+
+        reLUfunc = np.vectorize(rectified_linear_unit)
+        hidden_layer_activation = reLUfunc(hidden_layer_weighted_input)
+
+        output =  np.dot(hidden_layer_activation.T, self.hidden_to_output_weights.T)
+        activated_output = output_layer_activation(output)
 
         return activated_output.item()
 
@@ -94,6 +106,7 @@ class NeuralNetwork():
         for epoch in range(self.epochs_to_train):
             for x,y in self.training_points:
                 self.train(x[0], x[1], y)
+                print("Epoch ", epoch, "x,y", x[0],x[1],y)
 
     # Run this to test your neural network implementation for correctness after it is trained
     def test_neural_network(self):
@@ -111,4 +124,4 @@ x = NeuralNetwork()
 x.train_neural_network()
 
 # UNCOMMENT THE LINE BELOW TO TEST YOUR NEURAL NETWORK
-# x.test_neural_network()
+x.test_neural_network()

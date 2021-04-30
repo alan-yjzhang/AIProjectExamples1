@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.svm import LinearSVC
+# https://towardsdatascience.com/optimization-loss-function-under-the-hood-part-iii-5dff33fa015d
 # https://scikit-learn.org/stable/modules/svm.html#id18
 # original paper:
 # http://jmlr.csail.mit.edu/papers/volume2/crammer01a/crammer01a.pdf

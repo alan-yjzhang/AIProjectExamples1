@@ -7,6 +7,7 @@ import torch
 import torch.autograd as autograd
 import torch.nn.functional as F
 import torch.nn as nn
+import collections
 import sys
 sys.path.append("..")
 import utils
@@ -42,20 +43,48 @@ def main():
 
     #################################
     ## Model specification TODO
-    model = nn.Sequential(
+    model_unamed = nn.Sequential(
               nn.Conv2d(1, 32, (3, 3)),
               nn.ReLU(),
               nn.MaxPool2d((2, 2)),
+              nn.Conv2d(32,64,(3,3)),
+              nn.ReLU(),
+              nn.MaxPool2d((2,2)),
+              nn.Flatten(),
+              nn.Linear(5*5*64, 128),
+              nn.Dropout(0.5),
+              nn.Linear(128,10)
             )
+    model = nn.Sequential(
+        collections.OrderedDict(
+            [("conv1", nn.Conv2d(1, 32, (3, 3))),
+             ("relu1", nn.ReLU()),
+             ("pool1", nn.MaxPool2d((2, 2))),
+             ("conv2", nn.Conv2d(32, 64, (3, 3))),
+             ("relu2", nn.ReLU()),
+             ("pool2", nn.MaxPool2d((2, 2))),
+             ("flat1", nn.Flatten()),
+             ("linear1", nn.Linear(5*5*64, 128)),
+             ("drop1", nn.Dropout(0.5)),
+             ("linear2", nn.Linear(128, 10))
+             ]
+        )
+    )
     ##################################
 
     train_model(train_batches, dev_batches, model, nesterov=True)
+    # Save the model
+    torch.save(model, 'mnist_model_cnn.pt')
 
     ## Evaluate the model on test data
     loss, accuracy = run_epoch(test_batches, model.eval(), None)
 
     print ("Loss on test set:"  + str(loss) + " Accuracy on test set: " + str(accuracy))
 
+# Epoch 10:
+# Train loss: 0.020385 | Train accuracy: 0.993405
+# Val loss:   0.037970 | Val accuracy:   0.990475
+# Loss on test set:0.030 Accuracy on test set: 0.990
 
 if __name__ == '__main__':
     # Specify seed for deterministic behavior, then shuffle. Do not change seed for official submissions to edx

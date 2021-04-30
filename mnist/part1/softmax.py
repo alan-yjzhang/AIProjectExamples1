@@ -34,25 +34,24 @@ def compute_probabilities(X, theta, temp_parameter):
     Returns:
         H - (k, n) NumPy array, where each entry H[j][i] is the probability that X[i] is labeled as j
     """
-    # WX = np.matmul(theta, X.T)
-    # WX2 = np.exp(WX / temp_parameter)
-    # sum1 = np.sum(WX2, axis=0)
-    # H0 = (WX2 / sum1)
+    WX = np.matmul(theta, X.T)
+    WX = WX - np.max(WX, axis = 0)
+    WX2 = np.exp(WX / temp_parameter)
+    sum1 = np.sum(WX2, axis=0)
+    H0 = (WX2 / sum1)
 
-    H = np.zeros([theta.shape[0], X.shape[0]])
-    for i in range(X.shape[0]):
-        prob = np.zeros(theta.shape[0])
-        for j in range(theta.shape[0]):
-            prob[j] = np.dot(X[i], theta[j]) / temp_parameter
-        max = prob.max()
-        if max > 0 :
-            prob = prob / prob.max()
-        prob = np.exp(prob)
-
-        total = prob.sum()
-        prob = prob / total
-        H[:, i] = prob
-    return H
+    # H = np.zeros([theta.shape[0], X.shape[0]])
+    # for i in range(X.shape[0]):
+    #     prob = np.zeros(theta.shape[0])
+    #     for j in range(theta.shape[0]):
+    #         prob[j] = np.dot(X[i], theta[j]) / temp_parameter
+    #     max = prob.max()
+    #     prob = np.exp(prob - max)
+    #
+    #     total = prob.sum()
+    #     prob = prob / total
+    #     H[:, i] = prob
+    return H0
 
 
 
@@ -72,8 +71,15 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
     Returns
         c - the cost value (scalar)
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    prob = compute_probabilities(X, theta, temp_parameter)
+    cost1 = 0
+    for i in range(X.shape[0]):
+        label = Y[i]
+        cost1 += np.log(prob[label][i])
+    cost2 = np.sum(theta **2)
+    cost = -cost1/X.shape[0] + cost2 * lambda_factor / 2
+
+    return cost
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """

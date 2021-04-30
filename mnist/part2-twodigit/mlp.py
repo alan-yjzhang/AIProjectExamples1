@@ -18,13 +18,16 @@ class MLP(nn.Module):
     def __init__(self, input_dimension):
         super(MLP, self).__init__()
         self.flatten = Flatten()
-        # TODO initialize model layers here
+        self.hiddenLayer = nn.Linear(img_cols * img_rows,64)
+        self.outLayer = nn.Linear(64, num_classes *2)
 
     def forward(self, x):
         xf = self.flatten(x)
-
-        # TODO use model layers to predict the two digits
-
+        xh = self.hiddenLayer(xf)
+        xh = F.relu(xh)
+        out = self.outLayer(xh)
+        out_first_digit = out[:,:num_classes]
+        out_second_digit = out[:,num_classes:]
         return out_first_digit, out_second_digit
 
 def main():
