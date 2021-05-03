@@ -56,7 +56,7 @@ outputs= []
 def hook(module, input, output):
     outputs.append(output)
 
-model.fc2.register_forward_hook(hook)
+model.conv1.register_forward_hook(hook)
 
 out = model(tensorImg)
 # print(outputs)
