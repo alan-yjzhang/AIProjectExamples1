@@ -1,4 +1,29 @@
-"""Tabular QL agent"""
+"""DQN QL agent
+
+    Simple Policy-learning algorithm
+    In this project, we address the task of learning control policies for text-based games using reinforcement learning.
+    In these games, all interactions between players and the virtual world are through text.
+    The current world state is described by elaborate text, and the underlying state is not directly observable.
+    Players read descriptions of the state and respond with natural language commands to take actions.
+
+    For this project you will conduct experiments on a small Home World, which mimic the environment of a typical house.The world consists of a few rooms, and each room contains a representative object that the player can interact with.
+    For instance, the kitchen has an apple that the player can eat. The goal of the player is to finish some quest. An example of a quest given to the player in text is You are hungry now .
+    To complete this quest, the player has to navigate through the house to reach the kitchen and eat the apple.
+    In this game, the room is hidden from the player, who only receives a description of the underlying room.
+    At each step, the player read the text describing the current room and the quest, and respond with some command (e.g., eat apple ).
+    The player then receives some reward that depends on the state and his/her command.
+
+    In order to design an autonomous game player, we will employ a reinforcement learning framework to learn command policies using game rewards as feedback.
+    Since the state observable to the player is described in text, we have to choose a mechanism that maps text descriptions into vector representations.
+
+    A naive approach is to create a map that assigns a unique index for each text description.  -- agent_tabular_ql.py
+
+    However, such approach becomes difficult to implement when the number of textual state descriptions are huge.
+    An alternative method is to use a bag-of-words representation derived from the text description. -- agent_linear.py
+
+    As observed in agent_linear.py, a linear model is not able to correctly approximate the Q-function for our simple task.
+    Deep-learning approach -- agent_dqn.py
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -29,19 +54,37 @@ model = None
 optimizer = None
 
 
-def epsilon_greedy(state_vector, epsilon):
+def epsilon_greedy(state_vector,current_room_index, epsilon):
     """Returns an action selected by an epsilon-greedy exploration policy
 
     Args:
         state_vector (torch.FloatTensor): extracted vector representation
-        theta (np.ndarray): current weight matrix
         epsilon (float): the probability of choosing a random command
 
     Returns:
         (int, int): the indices describing the action/object to take
     """
-    # TODO Your code here
-    action_index, object_index = None, None
+    (action_index, object_index) = (None, None)
+    choice = np.random.choice([0,1], p=[epsilon, 1-epsilon])
+
+    valid_actions = framework.command_is_valid[current_room_index,...]
+    valid_actions = np.argwhere(valid_actions == 1)
+    random_actions = []
+    for (i,j) in valid_actions:
+        random_actions.append((i,j))
+    if choice == 1 :  # choose the best one
+        action_values, object_values = model(state_vector)
+        action_index = action_values.argmax()
+        object_index = object_values.argmax()
+        if (action_index, object_index) in random_actions:
+            pass
+        else:
+            choice = 0
+
+    if choice == 0: # random choose from valid actions
+        choice = np.random.choice(len(random_actions))
+        (action_index, object_index) = random_actions[choice]
+
     return (action_index, object_index)
 
 class DQN(nn.Module):
@@ -78,14 +121,22 @@ def deep_q_learning(current_state_vector, action_index, object_index, reward,
     """
     with torch.no_grad():
         q_values_action_next, q_values_object_next = model(next_state_vector)
+
+    # calculate the max Q-value of (next state, *) -- i.e. the V-value (next state)
     maxq_next = 1 / 2 * (q_values_action_next.max()
                          + q_values_object_next.max())
+    # calculate the new Q-value of (state, action, object)
+    new_q_value = reward + GAMMA * maxq_next
 
-    q_value_cur_state = model(current_state_vector)
+    # find the current state Q-values (state, *)
+    q_values_cur_state_actions, q_values_cur_state_objects = model(current_state_vector)
+    # calculate the current Q-value of (state, action, object)
+    cur_q_value = 1 /2 * (q_values_cur_state_actions[action_index] + q_values_cur_state_objects[object_index])
 
-    # TODO Your code here
+    # Current State value  = max{Q(state, *) for all actions, objects}
 
-    loss = None
+    # loss function: square distance
+    loss = 1 / 2 * (cur_q_value - new_q_value)**2
 
     optimizer.zero_grad()
     loss.backward()
@@ -112,20 +163,28 @@ def run_episode(for_training):
         current_state_vector = torch.FloatTensor(
             utils.extract_bow_feature_vector(current_state, dictionary))
 
-        # TODO Your code here
+        current_room_index = framework.rooms_desc_map[current_room_desc]
+        action_index, object_index = epsilon_greedy(current_state_vector, current_room_index, epsilon)
+        (next_room_desc, next_quest_desc, reward, terminal) = framework.step_game(current_room_desc, current_quest_desc,
+                                                                                  action_index, object_index)
+        next_state = next_room_desc + next_quest_desc
+        next_state_vector = torch.FloatTensor(utils.extract_bow_feature_vector(next_state, dictionary))
 
         if for_training:
             # update Q-function.
-            # TODO Your code here
-            pass
+            deep_q_learning(current_state_vector, action_index, object_index, reward, next_state_vector, terminal)
+
 
         if not for_training:
             # update reward
-            # TODO Your code here
-            pass
+            if epi_reward == None:
+                epi_reward = reward
+            else:
+                epi_reward += reward
 
         # prepare next step
-        # TODO Your code here
+        current_room_desc = next_room_desc
+        current_quest_desc = next_quest_desc
 
     if not for_training:
         return epi_reward

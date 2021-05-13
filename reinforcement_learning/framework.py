@@ -17,11 +17,19 @@ quests_map = {}
 # --                     'You are not hungry but sleepy.',
 # --                     'You are not getting fat but bored.',
 # --                     'You are not bored but getting fat.'}
-
+#
+# Note: Normally, we would build these dictionaries as we train our agent, collecting descriptions and adding them to the list of known descriptions.
+#     For the purpose of this project, these dictionaries will be provided to you.
+#
 quest_actions = ['watch', 'exercise', 'eat', 'sleep'] #aligned to quests above
 quest_objects = ['tv', 'bike', 'apple', 'bed'] #aligned to quest actions above
 
 rooms = ['Living', 'Garden', 'Kitchen','Bedroom']
+
+# Recall that the state observable to the player is described in text. Therefore we have to choose a mechanism that maps text descriptions into vector representations.
+# In this following, you will consider a simple approach that assigns a unique index for each text description.
+# To improve: 1) bags of words
+#             2) word embedding
 living_desc = ['This room has a couch, chairs and TV.',
           'You have entered the living room. You can watch TV here.',
           'This room has two sofas, chairs and a chandelier.',
@@ -112,6 +120,8 @@ def load_game_data():
 
 # take a step in the game
 def step_game(current_room_desc, current_quest_desc, action_index, object_index):
+    # reward: A real valued number representing the one-step reward obtained at this step
+
     global STEP_COUNT
     STEP_COUNT = STEP_COUNT+1
     terminal = (STEP_COUNT >= MAX_STEPS)
@@ -177,7 +187,9 @@ def newGame():
         print('Start a new game')
         print('Start Room %d: %s. %s' % (room_index, room_name, room_desc,))
         print('Start quest: %s' % (quest_desc,))
-
+    # Returns:
+    # A tuple where the first element is a description of the initial room, the second element is a description of the quest for this new game episode,
+    # and the last element is a Boolean variable with value False implying that the game is not over.
     return (room_desc, quest_desc, terminal)
 
 def get_actions():
@@ -191,6 +203,10 @@ def make_all_states_index():
     Returns tow dictionaries:
     1: one for all unique room descriptions occur in the game
     2: one for all unique quests in the game
+
+    Note: Normally, we would build these dictionaries as we train our agent, collecting descriptions and adding them to the list of known descriptions.
+    For the purpose of this project, these dictionaries will be provided to you.
+
     """
     dictionary_room_desc = {}
     dictionary_quest_desc = {}
