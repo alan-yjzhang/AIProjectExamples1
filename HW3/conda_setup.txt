@@ -1,0 +1,13 @@
+
+1. Download miniconda or conda with python 3.8 version
+https://www.anaconda.com/products/individual#Downloads
+
+2. conda install pytorch torchvision torchaudio -c pytorch
+
+conda install future
+conda install scipy
+
+3. conda install captum -c pytorch
+
+
+
